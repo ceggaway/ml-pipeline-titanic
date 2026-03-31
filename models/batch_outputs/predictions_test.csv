@@ -1,0 +1,419 @@
+PassengerId,prediction,probability,survived_label
+892,0,0.1194,Not Survived
+893,0,0.4115,Not Survived
+894,0,0.037,Not Survived
+895,0,0.1425,Not Survived
+896,1,0.738,Survived
+897,0,0.1971,Not Survived
+898,1,0.7485,Survived
+899,0,0.1293,Not Survived
+900,1,0.9374,Survived
+901,0,0.1068,Not Survived
+902,0,0.1382,Not Survived
+903,0,0.2795,Not Survived
+904,1,0.9922,Survived
+905,0,0.054,Not Survived
+906,1,0.981,Survived
+907,1,0.9285,Survived
+908,0,0.1332,Not Survived
+909,0,0.2175,Not Survived
+910,1,0.7542,Survived
+911,1,0.5959,Survived
+912,0,0.134,Not Survived
+913,0,0.4094,Not Survived
+914,1,0.9623,Survived
+915,0,0.3183,Not Survived
+916,1,0.986,Survived
+917,0,0.0425,Not Survived
+918,1,0.9915,Survived
+919,0,0.2129,Not Survived
+920,1,0.6982,Survived
+921,0,0.2109,Not Survived
+922,0,0.0728,Not Survived
+923,0,0.1585,Not Survived
+924,1,0.5464,Survived
+925,0,0.4197,Not Survived
+926,1,0.6633,Survived
+927,0,0.2555,Not Survived
+928,1,0.5424,Survived
+929,0,0.4437,Not Survived
+930,0,0.1523,Not Survived
+931,1,0.8614,Survived
+932,0,0.0776,Not Survived
+933,1,0.9072,Survived
+934,0,0.1362,Not Survived
+935,1,0.9486,Survived
+936,1,0.9911,Survived
+937,0,0.1415,Not Survived
+938,1,0.5585,Survived
+939,0,0.3069,Not Survived
+940,1,0.9882,Survived
+941,1,0.5496,Survived
+942,1,0.6255,Survived
+943,0,0.1571,Not Survived
+944,1,0.875,Survived
+945,1,0.9781,Survived
+946,0,0.1656,Not Survived
+947,0,0.0688,Not Survived
+948,0,0.1476,Not Survived
+949,0,0.2697,Not Survived
+950,0,0.1146,Not Survived
+951,1,0.9941,Survived
+952,0,0.1708,Not Survived
+953,0,0.2195,Not Survived
+954,0,0.2093,Not Survived
+955,1,0.9099,Survived
+956,1,0.875,Survived
+957,1,0.9171,Survived
+958,1,0.8749,Survived
+959,0,0.1266,Not Survived
+960,1,0.7212,Survived
+961,1,0.9467,Survived
+962,1,0.8551,Survived
+963,0,0.1411,Not Survived
+964,1,0.5424,Survived
+965,1,0.8213,Survived
+966,1,0.9934,Survived
+967,1,0.5031,Survived
+968,0,0.1405,Not Survived
+969,1,0.8434,Survived
+970,0,0.1891,Not Survived
+971,1,0.8551,Survived
+972,1,0.8375,Survived
+973,0,0.0858,Not Survived
+974,0,0.2322,Not Survived
+975,0,0.1382,Not Survived
+976,0,0.2098,Not Survived
+977,0,0.1189,Not Survived
+978,1,0.857,Survived
+979,1,0.6433,Survived
+980,1,0.8563,Survived
+981,1,0.9585,Survived
+982,1,0.5782,Survived
+983,0,0.1711,Not Survived
+984,1,0.9854,Survived
+985,0,0.1405,Not Survived
+986,0,0.2579,Not Survived
+987,0,0.1705,Not Survived
+988,1,0.9705,Survived
+989,0,0.1598,Not Survived
+990,1,0.628,Survived
+991,0,0.2254,Not Survived
+992,1,0.984,Survived
+993,0,0.1499,Not Survived
+994,0,0.3069,Not Survived
+995,0,0.1714,Not Survived
+996,1,0.8822,Survived
+997,0,0.1313,Not Survived
+998,0,0.3084,Not Survived
+999,0,0.3069,Not Survived
+1000,0,0.1489,Not Survived
+1001,0,0.2971,Not Survived
+1002,0,0.1279,Not Survived
+1003,1,0.8569,Survived
+1004,1,0.9575,Survived
+1005,1,0.9334,Survived
+1006,1,0.9708,Survived
+1007,0,0.1462,Not Survived
+1008,0,0.0898,Not Survived
+1009,1,0.9588,Survived
+1010,0,0.4826,Not Survived
+1011,1,0.9089,Survived
+1012,1,0.9055,Survived
+1013,0,0.3972,Not Survived
+1014,1,0.9913,Survived
+1015,0,0.1301,Not Survived
+1016,0,0.3069,Not Survived
+1017,0,0.4069,Not Survived
+1018,0,0.1778,Not Survived
+1019,1,0.8365,Survived
+1020,0,0.1874,Not Survived
+1021,0,0.1415,Not Survived
+1022,0,0.2398,Not Survived
+1023,1,0.5991,Survived
+1024,0,0.2367,Not Survived
+1025,0,0.0713,Not Survived
+1026,0,0.1617,Not Survived
+1027,0,0.1606,Not Survived
+1028,0,0.1854,Not Survived
+1029,0,0.1449,Not Survived
+1030,1,0.5411,Survived
+1031,0,0.029,Not Survived
+1032,0,0.0626,Not Survived
+1033,1,0.9873,Survived
+1034,0,0.105,Not Survived
+1035,0,0.1547,Not Survived
+1036,1,0.6087,Survived
+1037,0,0.1488,Not Survived
+1038,1,0.5881,Survived
+1039,0,0.1425,Not Survived
+1040,1,0.5835,Survived
+1041,0,0.2175,Not Survived
+1042,1,0.9948,Survived
+1043,0,0.1806,Not Survived
+1044,0,0.0119,Not Survived
+1045,1,0.6514,Survived
+1046,0,0.1643,Not Survived
+1047,0,0.1518,Not Survived
+1048,1,0.9922,Survived
+1049,1,0.6067,Survived
+1050,1,0.9122,Survived
+1051,1,0.636,Survived
+1052,1,0.8986,Survived
+1053,1,0.7181,Survived
+1054,1,0.8924,Survived
+1055,0,0.0807,Not Survived
+1056,0,0.1876,Not Survived
+1057,1,0.5383,Survived
+1058,0,0.2488,Not Survived
+1059,0,0.0556,Not Survived
+1060,1,0.9374,Survived
+1061,0,0.4289,Not Survived
+1062,0,0.1319,Not Survived
+1063,0,0.182,Not Survived
+1064,0,0.1265,Not Survived
+1065,0,0.1728,Not Survived
+1066,0,0.0786,Not Survived
+1067,1,0.942,Survived
+1068,1,0.9451,Survived
+1069,0,0.2153,Not Survived
+1070,1,0.9634,Survived
+1071,1,0.9502,Survived
+1072,0,0.1891,Not Survived
+1073,1,0.6913,Survived
+1074,1,0.9929,Survived
+1075,0,0.3069,Not Survived
+1076,1,0.9929,Survived
+1077,0,0.1669,Not Survived
+1078,1,0.8696,Survived
+1079,0,0.1949,Not Survived
+1080,0,0.0591,Not Survived
+1081,0,0.1803,Not Survived
+1082,0,0.1556,Not Survived
+1083,0,0.2659,Not Survived
+1084,0,0.4549,Not Survived
+1085,0,0.0445,Not Survived
+1086,1,0.7434,Survived
+1087,0,0.1525,Not Survived
+1088,1,0.9698,Survived
+1089,1,0.6586,Survived
+1090,0,0.1145,Not Survived
+1091,1,0.7275,Survived
+1092,1,0.6787,Survived
+1093,1,0.9207,Survived
+1094,1,0.881,Survived
+1095,1,0.9054,Survived
+1096,0,0.1127,Not Survived
+1097,0,0.2407,Not Survived
+1098,0,0.465,Not Survived
+1099,0,0.1142,Not Survived
+1100,1,0.9224,Survived
+1101,0,0.1343,Not Survived
+1102,0,0.1741,Not Survived
+1103,0,0.0811,Not Survived
+1104,0,0.2179,Not Survived
+1105,1,0.8432,Survived
+1106,1,0.5633,Survived
+1107,0,0.273,Not Survived
+1108,1,0.8595,Survived
+1109,0,0.153,Not Survived
+1110,1,0.9878,Survived
+1111,0,0.1405,Not Survived
+1112,1,0.8449,Survived
+1113,0,0.1464,Not Survived
+1114,1,0.9429,Survived
+1115,0,0.1806,Not Survived
+1116,1,0.8788,Survived
+1117,1,0.6312,Survived
+1118,0,0.1744,Not Survived
+1119,1,0.8563,Survived
+1120,0,0.0999,Not Survived
+1121,0,0.185,Not Survived
+1122,0,0.2852,Not Survived
+1123,1,0.9446,Survived
+1124,0,0.072,Not Survived
+1125,0,0.2801,Not Survived
+1126,0,0.4684,Not Survived
+1127,0,0.1797,Not Survived
+1128,0,0.3399,Not Survived
+1129,0,0.2443,Not Survived
+1130,1,0.8966,Survived
+1131,1,0.9933,Survived
+1132,1,0.8672,Survived
+1133,1,0.8765,Survived
+1134,1,0.5739,Survived
+1135,0,0.1486,Not Survived
+1136,0,0.2155,Not Survived
+1137,1,0.7879,Survived
+1138,1,0.9056,Survived
+1139,0,0.1235,Not Survived
+1140,1,0.9089,Survived
+1141,1,0.5827,Survived
+1142,1,0.9692,Survived
+1143,0,0.1684,Not Survived
+1144,1,0.5198,Survived
+1145,0,0.1387,Not Survived
+1146,0,0.2236,Not Survived
+1147,0,0.1319,Not Survived
+1148,0,0.3069,Not Survived
+1149,0,0.1396,Not Survived
+1150,1,0.8901,Survived
+1151,0,0.1794,Not Survived
+1152,0,0.1063,Not Survived
+1153,0,0.1655,Not Survived
+1154,1,0.8831,Survived
+1155,1,0.9454,Survived
+1156,0,0.1709,Not Survived
+1157,0,0.1382,Not Survived
+1158,0,0.0196,Not Survived
+1159,0,0.1319,Not Survived
+1160,1,0.5424,Survived
+1161,0,0.1396,Not Survived
+1162,0,0.337,Not Survived
+1163,0,0.3069,Not Survived
+1164,1,0.9953,Survived
+1165,1,0.7116,Survived
+1166,0,0.1691,Not Survived
+1167,1,0.8942,Survived
+1168,0,0.1096,Not Survived
+1169,0,0.1228,Not Survived
+1170,0,0.138,Not Survived
+1171,0,0.1183,Not Survived
+1172,0,0.4572,Not Survived
+1173,1,0.9323,Survived
+1174,1,0.8563,Survived
+1175,0,0.4466,Not Survived
+1176,1,0.8784,Survived
+1177,0,0.07,Not Survived
+1178,0,0.1264,Not Survived
+1179,0,0.3406,Not Survived
+1180,0,0.2844,Not Survived
+1181,0,0.1405,Not Survived
+1182,0,0.1685,Not Survived
+1183,1,0.7112,Survived
+1184,0,0.1728,Not Survived
+1185,1,0.8754,Survived
+1186,0,0.2039,Not Survived
+1187,0,0.1383,Not Survived
+1188,1,0.9763,Survived
+1189,0,0.2109,Not Survived
+1190,0,0.1878,Not Survived
+1191,0,0.1629,Not Survived
+1192,0,0.1487,Not Survived
+1193,1,0.5077,Survived
+1194,0,0.1077,Not Survived
+1195,0,0.1351,Not Survived
+1196,1,0.8563,Survived
+1197,1,0.8903,Survived
+1198,1,0.6317,Survived
+1199,1,0.9375,Survived
+1200,0,0.3344,Not Survived
+1201,0,0.3358,Not Survived
+1202,0,0.1392,Not Survived
+1203,0,0.2129,Not Survived
+1204,0,0.1319,Not Survived
+1205,0,0.4469,Not Survived
+1206,1,0.9878,Survived
+1207,1,0.9179,Survived
+1208,0,0.1879,Not Survived
+1209,0,0.1617,Not Survived
+1210,0,0.1621,Not Survived
+1211,0,0.1572,Not Survived
+1212,0,0.1714,Not Survived
+1213,0,0.3225,Not Survived
+1214,0,0.3176,Not Survived
+1215,1,0.6409,Survived
+1216,1,0.9842,Survived
+1217,0,0.1027,Not Survived
+1218,1,0.9623,Survived
+1219,0,0.1602,Not Survived
+1220,0,0.1462,Not Survived
+1221,0,0.1268,Not Survived
+1222,1,0.9064,Survived
+1223,1,0.6237,Survived
+1224,0,0.1691,Not Survived
+1225,1,0.7242,Survived
+1226,0,0.1377,Not Survived
+1227,1,0.5993,Survived
+1228,0,0.2142,Not Survived
+1229,0,0.0403,Not Survived
+1230,0,0.2512,Not Survived
+1231,1,0.5699,Survived
+1232,0,0.1625,Not Survived
+1233,0,0.0982,Not Survived
+1234,0,0.0217,Not Survived
+1235,1,0.9907,Survived
+1236,0,0.3212,Not Survived
+1237,1,0.8683,Survived
+1238,0,0.1449,Not Survived
+1239,1,0.6851,Survived
+1240,0,0.1407,Not Survived
+1241,1,0.8932,Survived
+1242,1,0.993,Survived
+1243,0,0.1127,Not Survived
+1244,0,0.2158,Not Survived
+1245,0,0.1772,Not Survived
+1246,1,0.8706,Survived
+1247,1,0.614,Survived
+1248,1,0.951,Survived
+1249,0,0.1527,Not Survived
+1250,0,0.3069,Not Survived
+1251,1,0.5602,Survived
+1252,0,0.0405,Not Survived
+1253,1,0.9536,Survived
+1254,1,0.9355,Survived
+1255,0,0.1425,Not Survived
+1256,1,0.9923,Survived
+1257,0,0.097,Not Survived
+1258,0,0.1204,Not Survived
+1259,1,0.7864,Survived
+1260,1,0.9706,Survived
+1261,0,0.2325,Not Survived
+1262,0,0.1178,Not Survived
+1263,1,0.9946,Survived
+1264,0,0.0135,Not Survived
+1265,0,0.1885,Not Survived
+1266,1,0.9839,Survived
+1267,1,0.9818,Survived
+1268,1,0.5708,Survived
+1269,0,0.1189,Not Survived
+1270,0,0.1335,Not Survived
+1271,1,0.5593,Survived
+1272,0,0.3069,Not Survived
+1273,0,0.2814,Not Survived
+1274,1,0.5373,Survived
+1275,0,0.4632,Not Survived
+1276,0,0.1381,Not Survived
+1277,1,0.9491,Survived
+1278,0,0.1713,Not Survived
+1279,0,0.0517,Not Survived
+1280,0,0.3235,Not Survived
+1281,0,0.4069,Not Survived
+1282,0,0.3753,Not Survived
+1283,1,0.9789,Survived
+1284,0,0.438,Not Survived
+1285,0,0.0844,Not Survived
+1286,0,0.0481,Not Survived
+1287,1,0.9929,Survived
+1288,0,0.2686,Not Survived
+1289,1,0.9875,Survived
+1290,0,0.1766,Not Survived
+1291,0,0.0978,Not Survived
+1292,1,0.9932,Survived
+1293,0,0.113,Not Survived
+1294,1,0.9749,Survived
+1295,0,0.1808,Not Survived
+1296,1,0.6339,Survived
+1297,1,0.5435,Survived
+1298,0,0.1101,Not Survived
+1299,0,0.2534,Not Survived
+1300,1,0.8986,Survived
+1301,1,0.9099,Survived
+1302,1,0.8563,Survived
+1303,1,0.9935,Survived
+1304,1,0.6182,Survived
+1305,0,0.1405,Not Survived
+1306,1,0.9869,Survived
+1307,0,0.0643,Not Survived
+1308,0,0.1405,Not Survived
+1309,1,0.53,Survived

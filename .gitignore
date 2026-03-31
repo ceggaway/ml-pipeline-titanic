@@ -3,8 +3,13 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv-1/
 venv/
 env/
+
+# CatBoost training artefacts
+catboost_info/
+**/catboost_info/
 
 # Jupyter
 .ipynb_checkpoints/

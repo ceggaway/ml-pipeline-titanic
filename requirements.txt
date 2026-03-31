@@ -2,5 +2,14 @@ pandas
 scikit-learn
 joblib
 pyyaml
+matplotlib
+seaborn
+jupyter
+shap
+imbalanced-learn
+lightgbm
+xgboost
+catboost
 pytest
 pytest-cov
+

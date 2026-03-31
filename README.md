@@ -1,4 +1,4 @@
-# 🧠 End-to-End ML Pipeline
+# End-to-End ML Pipeline
 
 A production-style machine learning pipeline built for learning — covering the full lifecycle from raw data to a monitored, batch-scoring model. Built entirely with free, open-source tools.
 
@@ -7,7 +7,7 @@ A production-style machine learning pipeline built for learning — covering the
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 end_to_end_ml_pipeline/
@@ -17,9 +17,9 @@ end_to_end_ml_pipeline/
 │
 ├── experiments/                    # Notebook-based experimentation
 │   ├── exp_001_baseline/
-│   │   ├── notebook.ipynb
-│   │   └── notes.md
-│   └── experiments_log.md          # Running decision journal — one summary per exp
+│       ├── notebook.ipynb
+│       └── notes.md
+│  
 │
 ├── config/
 │   └── config.yaml                 # Final model + pipeline settings
@@ -57,13 +57,13 @@ end_to_end_ml_pipeline/
 
 ---
 
-## 🔄 Workflow
+## Workflow
 
 Three phases with deliberate gates between each. The gates force you to be explicit about when something is ready to move forward.
 
 ---
 
-### Phase 1 — Experiment 🔬
+### Phase 1 — Experiment 
 
 **Where:** `experiments/exp_00N/`  
 **Tools:** VSCode + Jupyter
@@ -79,7 +79,7 @@ Evaluate results manually by reading your metrics and charts directly in the not
 
 ---
 
-### Phase 2 — Finalise ✅
+### Phase 2 — Finalise 
 
 **Where:** `config/config.yaml`, `src/pipeline/pipeline.py`, `models/`
 
@@ -92,7 +92,7 @@ Evaluate results manually by reading your metrics and charts directly in the not
 
 ---
 
-### Phase 3 — Batch Score & Monitor 📊
+### Phase 3 — Batch Score & Monitor 
 
 No real-time API. The model scores data on a schedule and you monitor the outputs over time.
 
@@ -110,51 +110,8 @@ bash scripts/batch_predict.sh data/raw/titanic.csv
 
 ---
 
-## ⚠️ Data Processing — Avoiding Leakage
 
-A common beginner mistake is scaling or imputing before the train/test split. This leaks test information into training and gives falsely optimistic metrics.
-
-**The correct order:**
-
-```
-Raw data  (data/raw/)
-    ↓
-Structural cleaning + feature engineering
-    drop bad columns, fix dtypes,
-    add FamilySize, IsAlone, etc.
-    Safe to do on the full dataset.
-    ↓
-Train / Test split
-    ↓               ↓
-  Train           Test
-    ↓
-Fit imputer + scaler on train only
-    ↓               ↓
-Transform train   Transform test
-using train stats  using same train stats — no leakage
-```
-
-Scaling and imputing happen **inside** a sklearn `Pipeline` so the stats are always learned from training data alone:
-
-```python
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-
-preprocessing = Pipeline([
-    ("imputer", SimpleImputer(strategy="median")),  # learns from X_train only
-    ("scaler", StandardScaler()),                    # learns from X_train only
-])
-
-X_train_ready = preprocessing.fit_transform(X_train)  # learns + applies
-X_test_ready  = preprocessing.transform(X_test)        # applies same stats, no leakage
-```
-
-The fitted pipeline is saved to `models/final_model.joblib` so at batch scoring time, new data gets the exact same transforms automatically.
-
----
-
-## 🗂️ config/config.yaml
+## config/config.yaml
 
 Where experiment conclusions graduate to. `pipeline.py` reads from here so there are no hardcoded values buried in code.
 
@@ -194,7 +151,7 @@ training:
 
 ---
 
-## 🗒️ experiments_log.md — How to Use It
+## experiments_log.md — How to Use It
 
 This file tracks your **reasoning** — why you made each decision. You will thank yourself for this when you revisit the project later.
 
@@ -212,7 +169,7 @@ This file tracks your **reasoning** — why you made each decision. You will tha
 
 ---
 
-## 🔁 CI/CD & Automation
+## CI/CD & Automation
 
 Three GitHub Actions workflows:
 
@@ -239,7 +196,7 @@ on:
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 Prometheus scrapes metrics exposed by the batch script (prediction counts, score distributions, anomalies). Grafana reads from Prometheus and displays them as a dashboard you can check over time.
 
@@ -260,7 +217,7 @@ Prometheus: http://localhost:9090
 
 ---
 
-## ⚙️ Scripts
+## Scripts
 
 **scripts/train.sh**
 ```bash
@@ -281,7 +238,7 @@ python src/pipeline/pipeline.py \
 
 ---
 
-## 🧪 Tests
+## Tests
 
 ```bash
 pytest tests/ -v
@@ -292,7 +249,7 @@ Also runs automatically on every push via `ci.yml`.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Clone and install
@@ -316,7 +273,7 @@ grafana-server --homepath /usr/share/grafana
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 | Layer | Tool | Purpose |
 |---|---|---|
@@ -332,20 +289,7 @@ All tools are free and open-source.
 
 ---
 
-## 📌 Project Status
-
-| Milestone | Status |
-|---|---|
-| EDA & baseline model | ✅ Complete |
-| Feature engineering experiments | 🔄 In progress |
-| config.yaml + pipeline.py | ⬜ Planned |
-| Batch scoring script | ⬜ Planned |
-| GitHub Actions CI/CD + daily batch | ⬜ Planned |
-| Prometheus + Grafana monitoring | ⬜ Planned |
-
----
-
-## 📖 Learning Goals
+## Learning Goals
 
 - [ ] Understand the full ML lifecycle end-to-end
 - [ ] Write clean, modular Python (not just notebooks)

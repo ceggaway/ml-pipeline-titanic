@@ -1,4 +1,4 @@
-name: Daily Batch
+name: Daily Batch — Score & Commit
 
 on:
   schedule:
@@ -8,24 +8,42 @@ on:
 jobs:
   batch:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+          cache: pip
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Train model (ensures model artefact is up to date)
+        run: python src/pipeline/pipeline.py --config config/config.yaml --data data/raw/train.csv
+
       - name: Run batch predictions
-        run: bash scripts/batch_predict.sh data/raw/titanic.csv
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          python src/pipeline/pipeline.py \
+            --predict \
+            --input data/raw/test.csv \
+            --output models/batch_outputs/predictions_${TIMESTAMP}.csv
+
+      - name: Verify predictions output
+        run: |
+          LATEST=$(ls -t models/batch_outputs/predictions_*.csv | head -1)
+          ROWS=$(tail -n +2 "$LATEST" | wc -l)
+          echo "Latest output: $LATEST ($ROWS rows)"
+          test "$ROWS" -gt 0
 
       - name: Commit predictions to repo
         run: |
-          git config user.name  "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add models/batch_outputs/
           git diff --cached --quiet || git commit -m "chore: daily batch predictions $(date +%Y-%m-%d)"
           git push

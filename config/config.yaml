@@ -2,30 +2,92 @@ features:
   numeric:
     - Age
     - Fare
-    - SibSp
-    - Parch
+    - FamilySize
+    - LogFare
+    - Pclass_x_Fare
+    - FarePerPerson
   categorical:
-    - Pclass
     - Sex
     - Embarked
+    - Name_title
+    - Cabin_deck
+    - AgeGroup
   engineered:
-    - FamilySize   # SibSp + Parch + 1
-    - IsAlone      # 1 if FamilySize == 1
+    - FamilySize       # SibSp + Parch + 1
+    - IsAlone          # 1 if FamilySize == 1
+    - LogFare          # log1p(Fare) — handles right skew
+    - AgeGroup         # Child (<16) / Adult (16-60) / Senior (>60)
+    - Pclass_x_Fare    # Pclass * Fare interaction
+    - FarePerPerson    # Fare / FamilySize — normalises shared-ticket fares
+  title_mapping:
+    Mlle: Miss
+    Mme: Mrs
+    Ms: Miss
+  title_keep:
+    - Mr
+    - Mrs
+    - Miss
+    - Master
+  title_rare_label: Rare
+  age_bins: [0, 16, 60, .inf]
+  age_labels: [Child, Adult, Senior]
   drop:
     - Name
     - Ticket
     - Cabin
     - PassengerId
+    - SibSp          # replaced by FamilySize
+    - Parch          # replaced by FamilySize
+
+preprocessing:
+  impute:
+    Age: median
+    Embarked: mode
+    Cabin_deck: Unknown
+  scale:
+    - Age
+    - Fare
+    - FamilySize
+    - LogFare
+    - Pclass_x_Fare
+    - FarePerPerson
+  encode:
+    - Sex
+    - Embarked
+    - Name_title
+    - Cabin_deck
+    - AgeGroup
+
+imbalance:
+  method: RandomUnderSampler
+  random_state: 42
 
 model:
-  type: RandomForestClassifier
-  n_estimators: 200
-  max_depth: 8
-  min_samples_split: 5
-  random_state: 42
+  type: CatBoostClassifier
+  params:
+    random_state: 42
+    verbose: 0
+  threshold: 0.46
 
 training:
   test_size: 0.2
   cv_folds: 5
   scoring: roc_auc
   target: Survived
+
+evaluation:
+  metrics:
+    - roc_auc
+    - f1
+    - recall
+    - precision
+    - accuracy
+  positive_class: 1   # Survived
+
+# Experiment lineage
+# exp_001: Baseline RF — CV AUC 0.8741
+# exp_002: Random Undersampling — best recall on Survived (0.77)
+# exp_003: Feature engineering + Undersampling — F1 0.73, Recall 0.81
+# exp_004: Model selection — CatBoost best by F1 (0.783), CV AUC 0.8909
+# exp_005: Hyperparameter tuning — defaults were near-optimal, tuning did not improve
+# exp_006: Feature selection + threshold tuning + calibration — 19 features, threshold 0.5
