@@ -1,0 +1,31 @@
+features:
+  numeric:
+    - Age
+    - Fare
+    - SibSp
+    - Parch
+  categorical:
+    - Pclass
+    - Sex
+    - Embarked
+  engineered:
+    - FamilySize   # SibSp + Parch + 1
+    - IsAlone      # 1 if FamilySize == 1
+  drop:
+    - Name
+    - Ticket
+    - Cabin
+    - PassengerId
+
+model:
+  type: RandomForestClassifier
+  n_estimators: 200
+  max_depth: 8
+  min_samples_split: 5
+  random_state: 42
+
+training:
+  test_size: 0.2
+  cv_folds: 5
+  scoring: roc_auc
+  target: Survived

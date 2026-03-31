@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data — never commit raw data
+data/raw/*.csv
+
+# Model artifacts — commit final_model.joblib only if small enough
+# models/final_model.joblib
+
+# Outputs — committed by daily_batch workflow only
+# models/batch_outputs/
+
+# Monitoring
+monitoring/grafana/*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json

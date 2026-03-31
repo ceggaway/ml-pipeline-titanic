@@ -1,0 +1,31 @@
+name: Daily Batch
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # every day at 1am UTC
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run batch predictions
+        run: bash scripts/batch_predict.sh data/raw/titanic.csv
+
+      - name: Commit predictions to repo
+        run: |
+          git config user.name  "github-actions"
+          git config user.email "github-actions@github.com"
+          git add models/batch_outputs/
+          git diff --cached --quiet || git commit -m "chore: daily batch predictions $(date +%Y-%m-%d)"
+          git push
