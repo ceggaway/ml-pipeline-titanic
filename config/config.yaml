@@ -84,10 +84,11 @@ evaluation:
     - accuracy
   positive_class: 1   # Survived
 
-# Experiment lineage
-# exp_001: Baseline RF — CV AUC 0.8741
-# exp_002: Random Undersampling — best recall on Survived (0.77)
-# exp_003: Feature engineering + Undersampling — F1 0.73, Recall 0.81
-# exp_004: Model selection — CatBoost best by F1 (0.783), CV AUC 0.8909
-# exp_005: Hyperparameter tuning — defaults were near-optimal, tuning did not improve
-# exp_006: Feature selection + threshold tuning + calibration — 19 features, threshold 0.5
+# ── Experiment lineage — decisions and outcomes ──────────────────────────────
+# exp_001: Baseline RF                → CV AUC 0.8741 | Recall 0.68 | identified class imbalance as main weakness
+# exp_002: Imbalance handling         → RandomUnderSampler chosen | Recall improved to 0.77
+# exp_003: Feature engineering        → added LogFare, AgeGroup, FamilySize, IsAlone, Pclass×Fare, FarePerPerson | F1 0.73, Recall 0.81
+# exp_004: Model selection            → CatBoost wins | CV AUC 0.8909, F1 0.783 | ensembling ruled out (71.8% error overlap)
+# exp_005: Hyperparameter tuning      → defaults near-optimal; tuning degraded results; kept defaults
+# exp_006: Model finalisation         → 17 features (dropped 8 near-zero importance) | threshold 0.46 (vs 0.5) | no calibration needed
+#                                        Final: CV AUC 0.8966, Hold-out Recall 0.841, F1 0.784
