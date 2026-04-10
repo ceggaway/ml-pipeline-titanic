@@ -6,8 +6,10 @@ from sklearn.preprocessing import StandardScaler
 def extract_raw_features(df: pd.DataFrame) -> pd.DataFrame:
     """Extract helper features from raw text/mixed columns before dropping them."""
     df = df.copy()
+    df["Name"]       = df["Name"].astype(str)
+    df["Cabin"]      = df["Cabin"].astype(str)
     df["Name_title"] = df["Name"].str.extract(r",\s*([^.]+)\.")
-    df["Cabin_deck"] = df["Cabin"].str[0]
+    df["Cabin_deck"] = df["Cabin"].str[0].where(df["Cabin"] != "nan", other=float("nan"))
     return df
 
 

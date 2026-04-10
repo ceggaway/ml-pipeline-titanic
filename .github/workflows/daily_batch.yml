@@ -28,12 +28,15 @@ jobs:
       - name: Train model (ensures model artefact is up to date)
         run: python src/pipeline/pipeline.py --config config/config.yaml --data data/raw/train.csv
 
+      - name: Generate daily synthetic input data
+        run: python scripts/generate_sample_data.py --rows 100
+
       - name: Run batch predictions
         run: |
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           python src/pipeline/pipeline.py \
             --predict \
-            --input data/raw/test.csv \
+            --input data/raw/daily_input.csv \
             --output models/batch_outputs/predictions_${TIMESTAMP}.csv
 
       - name: Verify predictions output
