@@ -12,4 +12,5 @@ xgboost
 catboost
 pytest
 pytest-cov
+prometheus-client
 

@@ -4,4 +4,4 @@ global:
 scrape_configs:
   - job_name: "ml_pipeline"
     static_configs:
-      - targets: ["localhost:8000"]
+      - targets: ["localhost:9100"]   # node_exporter scrapes models/metrics.prom

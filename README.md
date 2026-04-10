@@ -1,8 +1,8 @@
 # End-to-End ML Pipeline
 
-A production-style machine learning pipeline built for learning — covering the full lifecycle from raw data to a monitored, batch-scoring model. Built entirely with free, open-source tools.
+A production-style machine learning pipeline built for learning — covering the full lifecycle from raw data to a monitored, daily batch-scoring model. Built entirely with free, open-source tools.
 
-> **Current dataset:** Titanic survival prediction  
+> **Dataset:** Titanic survival prediction
 > **Goal:** Learn the full ML workflow — experimentation → training → batch scoring → monitoring
 
 ---
@@ -13,239 +13,84 @@ A production-style machine learning pipeline built for learning — covering the
 end_to_end_ml_pipeline/
 │
 ├── data/
-│   └── raw/                        # Original, untouched source data
+│   └── raw/
+│       ├── train.csv               # Training data
+│       ├── test.csv                # Static test data
+│       └── daily_input.csv         # Generated daily by scripts/generate_sample_data.py
 │
-├── experiments/                    # Notebook-based experimentation
+├── experiments/                    # One folder per experiment
 │   ├── exp_001_baseline/
-│       ├── notebook.ipynb
-│       └── notes.md
-│  
+│   ├── exp_002_imbalanced/
+│   ├── exp_003_feature_engineering/
+│   ├── exp_004_model_selection/
+│   ├── exp_005_hyperparameter_tuning/
+│   ├── exp_006_model_finalisation/
+│   └── results.md                  # Master tracker — all experiment outcomes
 │
 ├── config/
-│   └── config.yaml                 # Final model + pipeline settings
+│   └── config.yaml                 # All pipeline settings + experiment lineage
 │
 ├── src/
 │   └── pipeline/
-│       ├── pipeline.py             # Main pipeline: train + batch predict
-│       └── utils.py                # Helper functions
+│       ├── pipeline.py             # Train + batch predict entry point
+│       └── utils.py                # Preprocessing functions
 │
 ├── models/
-│   ├── final_model.joblib          # Saved trained model
-│   └── batch_outputs/              # Prediction CSVs from batch runs
+│   ├── final_model.joblib          # Saved model artefacts (model, scaler, stats, config)
+│   ├── metrics.prom                # Prometheus metrics written after each batch run
+│   └── batch_outputs/             # Prediction CSVs from each batch run
 │
 ├── scripts/
-│   ├── train.sh                    # Run training pipeline
-│   └── batch_predict.sh            # Score a dataset and save predictions
+│   ├── train.sh                    # Run training
+│   └── generate_sample_data.py    # Generate synthetic daily input data
 │
-├── monitoring/
-│   ├── prometheus.yml              # Batch-job metrics scrape config
-│   └── grafana/                    # Dashboard configs
+├── logs/
+│   └── pipeline.log                # Timestamped log of every pipeline run
 │
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                  # Run tests on push / pull request
-│       ├── cd.yml                  # Release updated batch pipeline on merge to main
-│       └── daily_batch.yml         # Cron job — score data and update monitoring daily
+│       ├── ci.yml                  # Run tests on every push
+│       ├── cd.yml                  # Train + predict on merge to main
+│       └── daily_batch.yml         # Cron: generate data → train → predict → commit
 │
 ├── tests/
-│   └── test_pipeline.py
+│   └── test_pipeline.py            # 22 unit tests for utils.py
 │
+├── COMMANDS.md                     # Quick reference for all commands
 ├── requirements.txt
-├── .gitignore
-└── README.md
+└── .gitignore
 ```
 
 ---
 
-## Workflow
+## Final Model
 
-Three phases with deliberate gates between each. The gates force you to be explicit about when something is ready to move forward.
-
----
-
-### Phase 1 — Experiment 
-
-**Where:** `experiments/exp_00N/`  
-**Tools:** VSCode + Jupyter
-
-Each experiment gets its own folder with exactly two files:
-
-- `notebook.ipynb` — all your code, charts, and trying things out
-- `notes.md` — what you tried, what you observed, what you decided
-
-Evaluate results manually by reading your metrics and charts directly in the notebook. When an experiment is done, summarise the outcome in `experiments_log.md`.
-
-**You move to Phase 2 when** you are confident in your feature set and model choice.
+| Setting | Value |
+|---|---|
+| Model | CatBoostClassifier |
+| Imbalance handling | RandomUnderSampler |
+| Features | 17 (after dropping 8 near-zero importance) |
+| CV ROC-AUC | 0.8966 |
+| Hold-out AUC | 0.8482 |
+| Hold-out Recall | 0.841 |
+| Hold-out Precision | 0.73 |
+| Hold-out F1 | 0.784 |
+| Hold-out Accuracy | 0.82 |
+| Decision threshold | 0.46 |
+| Calibration | Not applied (negligible improvement) |
 
 ---
 
-### Phase 2 — Finalise 
+## Experiment Lineage
 
-**Where:** `config/config.yaml`, `src/pipeline/pipeline.py`, `models/`
-
-1. Graduate your conclusions into `config/config.yaml` — features and hyperparameters locked here, not hardcoded in the script
-2. Refactor your notebook logic into clean functions in `pipeline.py`
-3. Run `bash scripts/train.sh` — the canonical training run
-4. Save the fitted pipeline (scaler + model) to `models/final_model.joblib`
-
-**You move to Phase 3 when** your tests pass and you are happy with evaluation results.
-
----
-
-### Phase 3 — Batch Score & Monitor 
-
-No real-time API. The model scores data on a schedule and you monitor the outputs over time.
-
-**Manual batch run:**
-```bash
-bash scripts/batch_predict.sh data/raw/titanic.csv
-# Output → models/batch_outputs/predictions_<timestamp>.csv
-```
-
-**Automated daily run** via GitHub Actions (`daily_batch.yml`):
-- Triggers on a cron schedule every day at 1am
-- Runs `batch_predict.sh` on new data automatically
-- Commits output CSV to `models/batch_outputs/`
-- Prometheus scrapes metrics, Grafana displays the dashboard
-
----
-
-
-## config/config.yaml
-
-Where experiment conclusions graduate to. `pipeline.py` reads from here so there are no hardcoded values buried in code.
-
-```yaml
-features:
-  numeric:
-    - Age        # impute: median
-    - Fare       # log-transform before scaling
-    - SibSp
-    - Parch
-  categorical:
-    - Pclass     # ordinal
-    - Sex        # one-hot
-    - Embarked   # one-hot, impute: mode
-  engineered:
-    - FamilySize # SibSp + Parch + 1
-    - IsAlone    # 1 if FamilySize == 1
-  drop:
-    - Name
-    - Ticket
-    - Cabin
-    - PassengerId
-
-model:
-  type: RandomForestClassifier
-  n_estimators: 200
-  max_depth: 8
-  min_samples_split: 5
-  random_state: 42
-
-training:
-  test_size: 0.2
-  cv_folds: 5
-  scoring: roc_auc
-  target: Survived
-```
-
----
-
-## experiments_log.md — How to Use It
-
-This file tracks your **reasoning** — why you made each decision. You will thank yourself for this when you revisit the project later.
-
-```markdown
-## exp_002 — Feature engineering
-**Date:** 2024-01-20
-**Hypothesis:** FamilySize and IsAlone will improve AUC over baseline
-
-**Result:** AUC 0.831 → 0.849 (+0.018)
-**Key finding:** IsAlone was the stronger signal; raw SibSp/Parch less useful alone
-
-**Decision:** Keep FamilySize + IsAlone. Drop raw SibSp/Parch.
-**Status:** GRADUATED → config.yaml updated
-```
-
----
-
-## CI/CD & Automation
-
-Three GitHub Actions workflows:
-
-**ci.yml — runs on every push**
-- Installs dependencies
-- Runs `pytest tests/`
-- Fails the push if any test breaks
-- Keeps your main branch always in a working state
-
-**cd.yml — runs on merge to main**
-- Installs dependencies and verifies the pipeline runs end-to-end
-- Ensures the main branch is always deployable
-
-**daily_batch.yml — runs on a cron schedule**
-```yaml
-on:
-  schedule:
-    - cron: "0 1 * * *"   # every day at 1am
-```
-- Pulls latest data
-- Runs `batch_predict.sh` automatically
-- Commits output CSV to `models/batch_outputs/`
-- Monitoring dashboards update with the new predictions
-
----
-
-## Monitoring
-
-Prometheus scrapes metrics exposed by the batch script (prediction counts, score distributions, anomalies). Grafana reads from Prometheus and displays them as a dashboard you can check over time.
-
-Run both locally:
-
-```bash
-# Prometheus
-prometheus --config.file=monitoring/prometheus.yml
-
-# Grafana (default port 3000)
-grafana-server --homepath /usr/share/grafana
-```
-
-```
-Grafana:    http://localhost:3000
-Prometheus: http://localhost:9090
-```
-
----
-
-## Scripts
-
-**scripts/train.sh**
-```bash
-#!/bin/bash
-python src/pipeline/pipeline.py \
-  --config config/config.yaml \
-  --data data/raw/titanic.csv
-```
-
-**scripts/batch_predict.sh**
-```bash
-#!/bin/bash
-python src/pipeline/pipeline.py \
-  --predict \
-  --input "$1" \
-  --output models/batch_outputs/predictions_$(date +%Y%m%d_%H%M%S).csv
-```
-
----
-
-## Tests
-
-```bash
-pytest tests/ -v
-pytest tests/ --cov=src --cov-report=term-missing
-```
-
-Also runs automatically on every push via `ci.yml`.
+| Experiment | Change | Key Result |
+|---|---|---|
+| exp_001 | Baseline Random Forest | CV AUC 0.8741, Recall 0.68 |
+| exp_002 | Imbalance handling | RandomUnderSampler → Recall 0.77 |
+| exp_003 | Feature engineering | LogFare, AgeGroup, FamilySize, IsAlone, Pclass×Fare | F1 0.73, Recall 0.81 |
+| exp_004 | Model selection | CatBoost wins, CV AUC 0.8909. Ensembling ruled out |
+| exp_005 | Hyperparameter tuning | Defaults near-optimal, tuning degraded results |
+| exp_006 | Finalisation | 17 features, threshold 0.46, CV AUC 0.8966 |
 
 ---
 
@@ -253,47 +98,86 @@ Also runs automatically on every push via `ci.yml`.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/yourname/end_to_end_ml_pipeline.git
-cd end_to_end_ml_pipeline
+git clone https://github.com/ceggaway/end_to_end_ml.git
+cd end_to_end_ml
 pip install -r requirements.txt
 
-# 2. Place raw data
-cp titanic.csv data/raw/
-
-# 3. Run training
+# 2. Train the model
 bash scripts/train.sh
 
-# 4. Run a batch prediction
-bash scripts/batch_predict.sh data/raw/titanic.csv
+# 3. Generate synthetic data and run batch prediction
+python scripts/generate_sample_data.py
+python src/pipeline/pipeline.py --predict \
+    --input data/raw/daily_input.csv \
+    --output models/batch_outputs/predictions.csv
 
-# 5. Start monitoring
-prometheus --config.file=monitoring/prometheus.yml
-grafana-server --homepath /usr/share/grafana
+# 4. Run tests
+pytest tests/ -v
 ```
+
+---
+
+## Batch Prediction
+
+Each batch run:
+- Processes rows individually — if one row fails, the rest complete normally
+- Saves predictions to `models/batch_outputs/predictions_<timestamp>.csv`
+- Saves any failed rows to `models/batch_outputs/failed_rows.csv`
+- Writes metrics to `models/metrics.prom` for Prometheus to scrape
+- Logs everything to `logs/pipeline.log`
+
+---
+
+## CI/CD
+
+| Workflow | Trigger | What it does |
+|---|---|---|
+| `ci.yml` | Every push | Runs `pytest tests/` |
+| `cd.yml` | Merge to main | Train → predict → verify output |
+| `daily_batch.yml` | 1am UTC daily | Generate data → train → predict → commit output |
+
+---
+
+## Monitoring
+
+Prometheus + Grafana running locally.
+
+```bash
+brew services start node_exporter   # http://localhost:9100
+brew services start prometheus       # http://localhost:9090
+brew services start grafana          # http://localhost:3000
+```
+
+Metrics written after each batch run:
+- `batch_pct_survived` — fraction predicted survived
+- `batch_total_rows` — rows scored
+- `batch_failed_rows` — rows that failed
+- `batch_success` — 1 if batch completed, 0 if it crashed
 
 ---
 
 ## Tech Stack
 
-| Layer | Tool | Purpose |
-|---|---|---|
-| Development | VSCode + Jupyter | IDE and experiment notebooks |
-| Pipeline | sklearn Pipeline | Leak-proof preprocessing + model |
-| Batch scoring | Python scripts | Offline scoring, CSV output |
-| Scheduling | GitHub Actions (cron) | Daily automated batch runs |
-| CI/CD | GitHub Actions | Auto-test on every push |
-| Metrics collection | Prometheus | Prediction counts, drift signals |
-| Dashboards | Grafana | Visualise outputs over time |
-
-All tools are free and open-source.
+| Layer | Tool |
+|---|---|
+| Experimentation | VSCode + Jupyter |
+| Model | CatBoost |
+| Imbalance | imbalanced-learn |
+| Preprocessing | scikit-learn |
+| Batch scoring | Python CLI |
+| Scheduling | GitHub Actions (cron) |
+| CI/CD | GitHub Actions |
+| Metrics | Prometheus + node_exporter |
+| Dashboards | Grafana |
+| Logging | Python `logging` module |
 
 ---
 
 ## Learning Goals
 
-- [ ] Understand the full ML lifecycle end-to-end
-- [ ] Write clean, modular Python (not just notebooks)
-- [ ] Avoid data leakage with sklearn Pipelines
-- [ ] Automate batch scoring with GitHub Actions
-- [ ] Monitor model outputs over time with Prometheus + Grafana
-- [ ] Practice software engineering habits: tests, CI/CD
+- [x] Understand the full ML lifecycle end-to-end
+- [x] Write clean, modular Python (not just notebooks)
+- [x] Avoid data leakage in preprocessing and CV
+- [x] Automate batch scoring with GitHub Actions
+- [x] Monitor model outputs with Prometheus + Grafana
+- [x] Practice software engineering: tests, CI/CD, logging, error handling
