@@ -58,12 +58,12 @@ end_to_end_ml_pipeline/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                  # Run tests on every push
-│       ├── verify_pipeline.yml     # End-to-end smoke test on merge to main
+│       ├── verify_pipeline.yml     # End-to-end smoke test on push or PR to main
 │       └── daily_batch.yml         # Cron: generate data → predict → commit (score only, no retrain)
 │
 ├── tests/
-│   ├── test_pipeline.py            # 22 unit tests for preprocessing functions (utils.py)
-│   └── test_integration.py        # 10 integration tests for end-to-end pipeline behaviour
+│   ├── test_pipeline.py            # Unit tests for preprocessing functions (utils.py)
+│   └── test_integration.py        # Integration tests — artefacts, schema, fault tolerance, metrics
 │
 ├── COMMANDS.md                     # Quick reference for all commands
 ├── requirements.txt
