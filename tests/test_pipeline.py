@@ -1,5 +1,7 @@
 """
-Tests for src/pipeline/utils.py
+Unit tests for src/pipeline/utils.py — preprocessing functions.
+
+For end-to-end pipeline behaviour, see tests/test_integration.py.
 
 Run with:
     pytest tests/ -v

@@ -62,8 +62,8 @@ end_to_end_ml_pipeline/
 │       └── daily_batch.yml         # Cron: generate data → predict → commit (score only, no retrain)
 │
 ├── tests/
-│   ├── test_pipeline.py            # 22 unit tests for utils.py
-│   └── test_integration.py        # 10 integration tests for end-to-end behaviour
+│   ├── test_pipeline.py            # 22 unit tests for preprocessing functions (utils.py)
+│   └── test_integration.py        # 10 integration tests for end-to-end pipeline behaviour
 │
 ├── COMMANDS.md                     # Quick reference for all commands
 ├── requirements.txt
@@ -141,8 +141,8 @@ Each batch run:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `ci.yml` | Every push | Runs all tests with coverage |
-| `verify_pipeline.yml` | Merge to main | Train → predict → verify output schema |
+| `ci.yml` | Every push to any branch | Runs all tests with coverage |
+| `verify_pipeline.yml` | Push or PR to main | Train → predict → verify output schema |
 | `daily_batch.yml` | 1am UTC daily | Generate data → predict (no retrain) → commit output |
 
 **Note:** Scoring and retraining are intentionally separate. The daily job scores with the existing model. Retraining is a deliberate, manual action — not an automatic daily event.
