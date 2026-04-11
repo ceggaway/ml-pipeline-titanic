@@ -32,16 +32,24 @@ end_to_end_ml_pipeline/
 │
 ├── src/
 │   └── pipeline/
-│       ├── pipeline.py             # Train + batch predict entry point
+│       ├── __init__.py             # Package entrypoint
+│       ├── pipeline.py             # Thin CLI wrapper
+│       ├── train.py                # Training logic
+│       ├── predict.py              # Batch prediction logic
+│       ├── evaluate.py             # Evaluation + drift detection
+│       ├── monitoring.py           # Logging + Prometheus metrics
+│       ├── io.py                   # Config/data loading + schema validation
 │       └── utils.py                # Preprocessing functions
 │
 ├── models/
-│   ├── final_model.joblib          # Saved model artefacts (model, scaler, stats, config)
+│   ├── final_model.joblib          # Latest trained model artefacts
+│   ├── model_<timestamp>.joblib    # Versioned model snapshots
 │   ├── metrics.prom                # Prometheus metrics written after each batch run
 │   └── batch_outputs/             # Prediction CSVs from each batch run
 │
 ├── scripts/
 │   ├── train.sh                    # Run training
+│   ├── batch_predict.sh            # Run batch prediction
 │   └── generate_sample_data.py    # Generate synthetic daily input data
 │
 ├── logs/
@@ -50,11 +58,12 @@ end_to_end_ml_pipeline/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                  # Run tests on every push
-│       ├── cd.yml                  # Train + predict on merge to main
-│       └── daily_batch.yml         # Cron: generate data → train → predict → commit
+│       ├── verify_pipeline.yml     # End-to-end smoke test on merge to main
+│       └── daily_batch.yml         # Cron: generate data → predict → commit (score only, no retrain)
 │
 ├── tests/
-│   └── test_pipeline.py            # 22 unit tests for utils.py
+│   ├── test_pipeline.py            # 22 unit tests for utils.py
+│   └── test_integration.py        # 10 integration tests for end-to-end behaviour
 │
 ├── COMMANDS.md                     # Quick reference for all commands
 ├── requirements.txt
@@ -86,9 +95,9 @@ end_to_end_ml_pipeline/
 | Experiment | Change | Key Result |
 |---|---|---|
 | exp_001 | Baseline Random Forest | CV AUC 0.8741, Recall 0.68 |
-| exp_002 | Imbalance handling | RandomUnderSampler → Recall 0.77 |
-| exp_003 | Feature engineering | LogFare, AgeGroup, FamilySize, IsAlone, Pclass×Fare | F1 0.73, Recall 0.81 |
-| exp_004 | Model selection | CatBoost wins, CV AUC 0.8909. Ensembling ruled out |
+| exp_002 | Imbalance handling | RandomUnderSampler chosen → Recall 0.77 |
+| exp_003 | Feature engineering | LogFare, AgeGroup, FamilySize, IsAlone, Pclass×Fare → F1 0.73, Recall 0.81 |
+| exp_004 | Model selection | CatBoost wins, CV AUC 0.8909. Ensembling ruled out (71.8% error overlap) |
 | exp_005 | Hyperparameter tuning | Defaults near-optimal, tuning degraded results |
 | exp_006 | Finalisation | 17 features, threshold 0.46, CV AUC 0.8966 |
 
@@ -107,9 +116,7 @@ bash scripts/train.sh
 
 # 3. Generate synthetic data and run batch prediction
 python scripts/generate_sample_data.py
-python src/pipeline/pipeline.py --predict \
-    --input data/raw/daily_input.csv \
-    --output models/batch_outputs/predictions.csv
+bash scripts/batch_predict.sh
 
 # 4. Run tests
 pytest tests/ -v
@@ -120,9 +127,11 @@ pytest tests/ -v
 ## Batch Prediction
 
 Each batch run:
+- Validates input schema before processing (fails fast if required columns are missing)
 - Processes rows individually — if one row fails, the rest complete normally
 - Saves predictions to `models/batch_outputs/predictions_<timestamp>.csv`
 - Saves any failed rows to `models/batch_outputs/failed_rows.csv`
+- Runs a drift check — warns if batch survival rate deviates >15% from training baseline
 - Writes metrics to `models/metrics.prom` for Prometheus to scrape
 - Logs everything to `logs/pipeline.log`
 
@@ -132,9 +141,11 @@ Each batch run:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `ci.yml` | Every push | Runs `pytest tests/` |
-| `cd.yml` | Merge to main | Train → predict → verify output |
-| `daily_batch.yml` | 1am UTC daily | Generate data → train → predict → commit output |
+| `ci.yml` | Every push | Runs all tests with coverage |
+| `verify_pipeline.yml` | Merge to main | Train → predict → verify output schema |
+| `daily_batch.yml` | 1am UTC daily | Generate data → predict (no retrain) → commit output |
+
+**Note:** Scoring and retraining are intentionally separate. The daily job scores with the existing model. Retraining is a deliberate, manual action — not an automatic daily event.
 
 ---
 
@@ -156,6 +167,57 @@ Metrics written after each batch run:
 
 ---
 
+## Design Decisions
+
+**Why CatBoost over Random Forest?**
+Random Forest was the baseline (exp_001). In exp_004, CatBoost improved CV AUC from 0.874 to 0.891 — the largest single jump across all experiments. CatBoost's ordered boosting reduces overfitting on small tabular datasets and handles categorical features natively.
+
+**Why Random Undersampling?**
+Titanic has ~62/38 class imbalance (Not Survived / Survived). Undersampling was chosen in exp_002 because it maximises Recall on the minority class (Survived = 0.77), which is the harder and more interesting class to predict. Oversampling and `class_weight=balanced` gave better F1 but lower recall.
+
+**Why threshold 0.46 instead of 0.5?**
+Tuned in exp_006. Lowering the threshold means the model predicts Survived more readily, increasing Recall from 0.783 to 0.841 (+0.058) with a small F1 improvement (+0.023). In a real use case, missing a survivor (false negative) is worse than a false alarm (false positive) — so recall matters more than precision here.
+
+**Why per-row fault tolerance in batch predict?**
+In a real batch job, one malformed row should not cancel predictions for 418 others. Processing row-by-row with try/except ensures partial batches still produce usable output, and failed rows are logged separately for investigation.
+
+**Why separate scoring and retraining cadences?**
+Retraining every day regardless of whether anything changed is wasteful and risky. In production, retraining should be triggered by explicit criteria — data drift, performance degradation, or a new data version. This project separates daily scoring from retrain logic so the distinction is clear.
+
+**Why no calibration?**
+Tested in exp_006. CatBoost's Brier score improved by only 0.0008 with calibration — negligible. Calibration adds complexity and a dependency on the calibration set size. Not worth it here.
+
+---
+
+## Trade-offs
+
+| Decision | What was gained | What was given up |
+|---|---|---|
+| Random Undersampling | Higher recall, simpler | Discards training data, lower precision |
+| CatBoost defaults | Near-optimal without tuning, fast | Less control over regularisation |
+| Threshold 0.46 | Better recall | Slightly more false positives |
+| No calibration | Simpler pipeline | Probabilities slightly less reliable |
+| Per-row prediction loop | Fault tolerance | Slower than batch matrix prediction |
+| No real-time API | Simpler deployment | Can't serve individual requests instantly |
+
+---
+
+## What I Would Improve in Production
+
+| Area | Current state | Production improvement |
+|---|---|---|
+| Model versioning | Timestamped `.joblib` files | MLflow or a model registry with metadata, metrics, and promotion gates |
+| Data versioning | Raw CSVs in git | DVC or S3 with data versioning and lineage tracking |
+| Schema validation | Column presence check | Full schema contract (types, ranges, null rates) using Great Expectations or Pandera |
+| Drift detection | Survival rate comparison | Feature-level drift (PSI, KS test) and prediction distribution monitoring |
+| Retraining trigger | Manual | Automated trigger when drift exceeds threshold, with validation gate before promotion |
+| Rollback | Load a previous `.joblib` file | Model registry with one-click rollback to last known good version |
+| Secrets management | None needed here | Vault or GitHub Secrets for API keys, DB credentials |
+| Containerisation | Runs locally / GitHub Actions | Docker image for reproducible environment across machines |
+| Observability | File-based metrics | Structured logging (JSON), centralised log aggregation |
+
+---
+
 ## Tech Stack
 
 | Layer | Tool |
@@ -164,7 +226,7 @@ Metrics written after each batch run:
 | Model | CatBoost |
 | Imbalance | imbalanced-learn |
 | Preprocessing | scikit-learn |
-| Batch scoring | Python CLI |
+| Batch scoring | Python CLI (`python -m src.pipeline.pipeline`) |
 | Scheduling | GitHub Actions (cron) |
 | CI/CD | GitHub Actions |
 | Metrics | Prometheus + node_exporter |
@@ -181,3 +243,6 @@ Metrics written after each batch run:
 - [x] Automate batch scoring with GitHub Actions
 - [x] Monitor model outputs with Prometheus + Grafana
 - [x] Practice software engineering: tests, CI/CD, logging, error handling
+- [x] Separate scoring and retraining cadences
+- [x] Schema validation and drift detection
+- [x] Model versioning

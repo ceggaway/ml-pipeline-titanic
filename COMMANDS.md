@@ -3,7 +3,6 @@
 ## Setup
 ```bash
 pip install -r requirements.txt
-pip install prometheus-client   # for monitoring
 ```
 
 ## Training
@@ -11,29 +10,40 @@ pip install prometheus-client   # for monitoring
 # Via script
 bash scripts/train.sh
 
-# Via Python directly
-python src/pipeline/pipeline.py --config config/config.yaml --data data/raw/train.csv
+# Via Python module directly
+python -m src.pipeline.pipeline --config config/config.yaml --data data/raw/train.csv
 ```
 
 ## Batch Prediction
 ```bash
-python src/pipeline/pipeline.py --predict \
-    --input data/raw/test.csv \
-    --output models/batch_outputs/predictions.csv
+# Via script (default input: data/raw/daily_input.csv)
+bash scripts/batch_predict.sh
 
-# With timestamp in output filename
-python src/pipeline/pipeline.py --predict \
-    --input data/raw/test.csv \
+# Custom input
+bash scripts/batch_predict.sh data/raw/test.csv
+
+# Via Python module directly with timestamp
+python -m src.pipeline.pipeline --predict \
+    --input data/raw/daily_input.csv \
     --output models/batch_outputs/predictions_$(date +%Y%m%d).csv
+```
+
+## Generate Synthetic Data
+```bash
+python scripts/generate_sample_data.py              # 100 rows → data/raw/daily_input.csv
+python scripts/generate_sample_data.py --rows 200   # custom row count
 ```
 
 ## Tests
 ```bash
-# Run all tests
-pytest tests/ -v
+# Unit tests (utils.py)
+pytest tests/test_pipeline.py -v
 
-# With coverage report
-pytest tests/ --cov=src --cov-report=term-missing
+# Integration tests (end-to-end pipeline behaviour)
+pytest tests/test_integration.py -v
+
+# All tests with coverage
+pytest tests/ -v --cov=src --cov-report=term-missing
 ```
 
 ## Git
@@ -63,11 +73,11 @@ brew services list
 ```
 
 ## Daily Batch (GitHub Actions) — Disable
+```bash
 # Option 1: via GitHub UI
-# Repo → Actions → Daily Batch Predict → ... → Disable workflow
+# Repo → Actions → Daily Batch → ... → Disable workflow
 
 # Option 2: delete the workflow file
-```bash
 rm .github/workflows/daily_batch.yml
 git add .github/workflows/daily_batch.yml
 git commit -m "remove daily batch workflow"

@@ -1,5 +1,8 @@
 name: Daily Batch — Score & Commit
 
+# Scoring only — uses the existing trained model (final_model.joblib committed to repo).
+# Retraining is a separate, intentional action — not triggered automatically.
+
 on:
   schedule:
     - cron: "0 1 * * *"   # every day at 1am UTC
@@ -25,16 +28,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Train model (ensures model artefact is up to date)
-        run: python src/pipeline/pipeline.py --config config/config.yaml --data data/raw/train.csv
-
       - name: Generate daily synthetic input data
         run: python scripts/generate_sample_data.py --rows 100
 
       - name: Run batch predictions
         run: |
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          python src/pipeline/pipeline.py \
+          python -m src.pipeline.pipeline \
             --predict \
             --input data/raw/daily_input.csv \
             --output models/batch_outputs/predictions_${TIMESTAMP}.csv
