@@ -249,15 +249,3 @@ Tested in exp_006. CatBoost's Brier score improved by only 0.0008 with calibrati
 | Logging | Python `logging` module |
 
 ---
-
-## Learning Goals
-
-- [x] Understand the full ML lifecycle end-to-end
-- [x] Write clean, modular Python (not just notebooks)
-- [x] Avoid data leakage in preprocessing and CV
-- [x] Automate batch scoring with GitHub Actions
-- [x] Monitor model outputs with Prometheus + Grafana
-- [x] Practice software engineering: tests, CI/CD, logging, error handling
-- [x] Separate scoring and retraining cadences
-- [x] Schema validation and drift detection
-- [x] Model versioning
