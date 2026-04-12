@@ -1,0 +1,44 @@
+[
+  {
+    "version": "20260412_030158",
+    "git_hash": "09a2b2b",
+    "trained_on": "data/raw/train.csv",
+    "features": [
+      "Pclass",
+      "Age",
+      "Fare",
+      "FamilySize",
+      "IsAlone",
+      "LogFare",
+      "Pclass_x_Fare",
+      "FarePerPerson",
+      "Sex_male",
+      "Embarked_Q",
+      "Embarked_S",
+      "Name_title_Miss",
+      "Name_title_Mr",
+      "Name_title_Mrs",
+      "Name_title_Rare",
+      "Cabin_deck_B",
+      "Cabin_deck_C",
+      "Cabin_deck_D",
+      "Cabin_deck_E",
+      "Cabin_deck_F",
+      "Cabin_deck_G",
+      "Cabin_deck_T",
+      "Cabin_deck_Unknown",
+      "AgeGroup_Adult",
+      "AgeGroup_Senior"
+    ],
+    "n_features": 25,
+    "threshold": 0.46,
+    "cv_auc": 0.8948,
+    "hold_out": {
+      "roc_auc": 0.844,
+      "f1": 0.7651,
+      "recall": 0.8261
+    },
+    "artefact_path": "models/model_20260412_030158.joblib",
+    "status": "latest"
+  }
+]

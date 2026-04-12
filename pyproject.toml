@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name            = "end-to-end-ml-pipeline"
+version         = "0.1.0"
+description     = "Production-style ML pipeline: experimentation → training → batch scoring → monitoring"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths    = ["tests"]
+addopts      = "-v"
+
+[tool.flake8]
+max-line-length = 120
+ignore          = ["E501", "W503"]
+exclude         = [".venv", ".venv-1", "__pycache__"]

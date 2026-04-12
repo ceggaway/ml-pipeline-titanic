@@ -1,9 +1,15 @@
 # End-to-End ML Pipeline
 
-A production-style machine learning pipeline built for learning — covering the full lifecycle from raw data to a monitored, daily batch-scoring model. Built entirely with free, open-source tools.
+**Why this project matters:**
+Most ML learning stops at model training. This project covers the full lifecycle — experimentation, production code, testing, automated scoring, monitoring, and observability — built the way an engineering team would actually maintain it.
+
+- Built to learn the full ML lifecycle, not just modelling
+- Covers training, batch scoring, testing, monitoring, CI/CD, and automation
+- Designed with real production trade-offs: fault tolerance, schema validation, drift detection, model versioning
+- Every decision documented with reasoning and trade-offs
 
 > **Dataset:** Titanic survival prediction
-> **Goal:** Learn the full ML workflow — experimentation → training → batch scoring → monitoring
+> **Model:** CatBoostClassifier | **CV AUC:** 0.8966 | **Recall:** 0.841
 
 ---
 
@@ -62,11 +68,14 @@ end_to_end_ml_pipeline/
 │       └── daily_batch.yml         # Cron: generate data → predict → commit (score only, no retrain)
 │
 ├── tests/
-│   ├── test_pipeline.py            # Unit tests for preprocessing functions (utils.py)
-│   └── test_integration.py        # Integration tests — artefacts, schema, fault tolerance, metrics
+│   ├── test_pipeline.py            # Unit tests — preprocessing functions (utils.py)
+│   └── test_integration.py        # Integration tests — artefacts, schema, fault tolerance, drift, CLI
 │
+├── Makefile                        # make train / make test / make predict / make reproduce
+├── pyproject.toml                  # Project metadata and tool config
 ├── COMMANDS.md                     # Quick reference for all commands
-├── requirements.txt
+├── requirements.txt                # Unpinned dependencies
+├── requirements-lock.txt           # Pinned versions for reproducibility
 └── .gitignore
 ```
 
@@ -109,29 +118,32 @@ end_to_end_ml_pipeline/
 # 1. Clone and install
 git clone https://github.com/ceggaway/end_to_end_ml.git
 cd end_to_end_ml
-pip install -r requirements.txt
+make install
 
-# 2. Train the model
-bash scripts/train.sh
+# 2. Reproduce the final model exactly
+make reproduce
 
-# 3. Generate synthetic data and run batch prediction
-python scripts/generate_sample_data.py
-bash scripts/batch_predict.sh
+# 3. Run batch prediction on synthetic daily data
+make predict
 
-# 4. Run tests
-pytest tests/ -v
+# 4. Run all tests
+make test
 ```
+
+Or use individual commands — see [COMMANDS.md](COMMANDS.md).
 
 ---
 
 ## Batch Prediction
 
 Each batch run:
-- Validates input schema before processing (fails fast if required columns are missing)
+- Validates input schema: required columns, dtypes, value ranges, allowed categories
 - Processes rows individually — if one row fails, the rest complete normally
+- Runs output drift check — warns if batch survival rate deviates >15% from training baseline
+- Runs feature-level drift check — KS test on Age, Fare, Pclass, SibSp, Parch
 - Saves predictions to `models/batch_outputs/predictions_<timestamp>.csv`
 - Saves any failed rows to `models/batch_outputs/failed_rows.csv`
-- Runs a drift check — warns if batch survival rate deviates >15% from training baseline
+- Saves drift report to `models/batch_outputs/drift_report.json`
 - Writes metrics to `models/metrics.prom` for Prometheus to scrape
 - Logs everything to `logs/pipeline.log`
 
@@ -160,10 +172,13 @@ brew services start grafana          # http://localhost:3000
 ```
 
 Metrics written after each batch run:
-- `batch_pct_survived` — fraction predicted survived
 - `batch_total_rows` — rows scored
 - `batch_failed_rows` — rows that failed
+- `batch_pct_survived` — fraction predicted survived
 - `batch_success` — 1 if batch completed, 0 if it crashed
+- `batch_drift_flag` — 1 if output or feature drift detected
+- `batch_timestamp` — Unix timestamp of run
+- `batch_model_version` — model version used for scoring
 
 ---
 
@@ -206,10 +221,10 @@ Tested in exp_006. CatBoost's Brier score improved by only 0.0008 with calibrati
 
 | Area | Current state | Production improvement |
 |---|---|---|
-| Model versioning | Timestamped `.joblib` files | MLflow or a model registry with metadata, metrics, and promotion gates |
+| Model versioning | Timestamped `.joblib` + `model_registry.json` with git hash and metrics | MLflow or a model registry with promotion gates and lineage UI |
 | Data versioning | Raw CSVs in git | DVC or S3 with data versioning and lineage tracking |
-| Schema validation | Column presence check | Full schema contract (types, ranges, null rates) using Great Expectations or Pandera |
-| Drift detection | Survival rate comparison | Feature-level drift (PSI, KS test) and prediction distribution monitoring |
+| Schema validation | Full contract: dtypes, ranges, null rates, allowed categories (errors + warnings) | Pandera or Great Expectations for declarative schema definitions |
+| Drift detection | Output drift (survival rate) + feature-level KS test on 5 features | PSI on all features, prediction distribution monitoring, alerting |
 | Retraining trigger | Manual | Automated trigger when drift exceeds threshold, with validation gate before promotion |
 | Rollback | Load a previous `.joblib` file | Model registry with one-click rollback to last known good version |
 | Secrets management | None needed here | Vault or GitHub Secrets for API keys, DB credentials |

@@ -3,8 +3,9 @@ monitoring.py — Logging setup and Prometheus metrics writing.
 """
 
 import logging
+import time
 from pathlib import Path
-from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
+from prometheus_client import CollectorRegistry, Gauge, Info, write_to_textfile
 
 
 def setup_logging() -> logging.Logger:
@@ -32,11 +33,16 @@ def write_metrics(
     failed_rows: int,
     pct_survived: float,
     success: int,
+    model_version: str = "unknown",
+    drift_flag: int = 0,
     output_path: str = "models/metrics.prom",
 ) -> None:
     registry = CollectorRegistry()
-    Gauge("batch_total_rows",  "Rows scored in this batch",      registry=registry).set(total_rows)
-    Gauge("batch_failed_rows", "Rows that failed prediction",    registry=registry).set(failed_rows)
-    Gauge("batch_pct_survived","Fraction predicted survived",    registry=registry).set(pct_survived)
-    Gauge("batch_success",     "1 if batch completed, 0 if not", registry=registry).set(success)
+    Gauge("batch_total_rows",    "Rows scored in this batch",      registry=registry).set(total_rows)
+    Gauge("batch_failed_rows",   "Rows that failed prediction",    registry=registry).set(failed_rows)
+    Gauge("batch_pct_survived",  "Fraction predicted survived",    registry=registry).set(pct_survived)
+    Gauge("batch_success",       "1 if batch completed, 0 if not", registry=registry).set(success)
+    Gauge("batch_drift_flag",    "1 if output drift detected",     registry=registry).set(drift_flag)
+    Gauge("batch_timestamp",     "Unix timestamp of batch run",    registry=registry).set(int(time.time()))
+    Info("batch_model",          "Model version used for scoring", registry=registry).info({"version": model_version})
     write_to_textfile(output_path, registry=registry)

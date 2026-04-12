@@ -1,9 +1,15 @@
 """
 Integration tests for the full pipeline.
 
-These tests exercise end-to-end behavior — training produces correct artefacts,
-batch scoring produces the expected schema, fault tolerance works correctly,
-and monitoring metrics are written.
+Covers:
+- Training produces correct artefacts with expected keys and values
+- Batch scoring produces expected output schema, prediction values, labels
+- Fault tolerance: one bad row is isolated, others succeed
+- Metrics file is written after batch run
+- Schema validation: missing columns halt pipeline, invalid values warn
+- Drift detection: output drift flag triggers correctly
+- Model versioning: registry is created and populated
+- CLI: correct output produced from command-line invocation
 
 Run with:
     pytest tests/test_integration.py -v
@@ -152,11 +158,8 @@ def test_one_bad_row_does_not_kill_batch(tmp_path):
     """One malformed row must go to failed_rows.csv while others succeed."""
     df = pd.read_csv(_make_input_csv(tmp_path, n=5))
 
-    # Corrupt row 2 by replacing Name with a float (breaks str.extract)
-    df.loc[2, "Name"]     = None
-    df.loc[2, "Embarked"] = None
-    df.loc[2, "Age"]      = None
-    df.loc[2, "Fare"]     = -999.0   # invalid fare
+    # Corrupt row 2 with a Name that has no extractable title (breaks group_titles downstream)
+    df.loc[2, "Name"] = "NoTitleHere"   # no comma/period pattern — title extraction returns NaN
 
     corrupt_path = tmp_path / "corrupt_input.csv"
     df.to_csv(corrupt_path, index=False)
@@ -186,3 +189,106 @@ def test_metrics_file_is_created(tmp_path, monkeypatch):
     batch_predict(CONFIG_PATH, str(input_path), str(output_path))
 
     assert (tmp_path / "models" / "metrics.prom").exists()
+
+
+# ── Schema validation tests ───────────────────────────────────────────────────
+
+def test_schema_validation_fails_on_missing_columns(tmp_path):
+    """Pipeline must halt with a clear error when required columns are missing."""
+    df = pd.DataFrame({"PassengerId": [1, 2], "Age": [30, 25]})  # missing most columns
+    input_path  = tmp_path / "bad_input.csv"
+    output_path = tmp_path / "predictions.csv"
+    df.to_csv(input_path, index=False)
+
+    with pytest.raises(SystemExit):
+        batch_predict(CONFIG_PATH, str(input_path), str(output_path))
+
+    assert not output_path.exists()
+
+
+def test_schema_validation_warns_on_invalid_category(tmp_path):
+    """Invalid category values should warn but not halt the pipeline."""
+    from src.pipeline.io import validate_schema
+    df = _make_input_csv(tmp_path, n=3)
+    df = pd.read_csv(df)
+    df.loc[0, "Sex"] = "unknown"       # invalid but non-blocking
+    df.loc[1, "Embarked"] = "Z"        # invalid but non-blocking
+
+    errors, warnings = validate_schema(df)
+    assert len(errors) == 0            # should not block
+    assert any("Sex" in w or "Embarked" in w for w in warnings)
+
+
+def test_schema_validation_errors_on_negative_fare(tmp_path):
+    """Negative fare values must raise a blocking schema error."""
+    from src.pipeline.io import validate_schema
+    df = pd.read_csv(_make_input_csv(tmp_path, n=3))
+    df.loc[0, "Fare"] = -10.0
+
+    errors, _ = validate_schema(df)
+    assert any("Fare" in e for e in errors)
+
+
+# ── Drift detection tests ─────────────────────────────────────────────────────
+
+def test_output_drift_triggers_above_threshold():
+    """Drift check must return True when deviation exceeds threshold."""
+    from src.pipeline.evaluate import check_output_drift
+    assert check_output_drift(pct_survived=0.9, training_baseline=0.38, threshold=0.15) is True
+
+
+def test_output_drift_passes_within_threshold():
+    """Drift check must return False when deviation is within threshold."""
+    from src.pipeline.evaluate import check_output_drift
+    assert check_output_drift(pct_survived=0.40, training_baseline=0.38, threshold=0.15) is False
+
+
+# ── Model versioning tests ────────────────────────────────────────────────────
+
+def test_model_registry_is_created():
+    """Training must create or update models/model_registry.json."""
+    import json
+    registry_path = Path("models/model_registry.json")
+    assert registry_path.exists(), "model_registry.json not found"
+
+    with open(registry_path) as f:
+        registry = json.load(f)
+
+    assert isinstance(registry, list)
+    assert len(registry) > 0
+
+    latest = registry[-1]
+    assert "version"    in latest
+    assert "git_hash"   in latest
+    assert "features"   in latest
+    assert "cv_auc"     in latest
+    assert "hold_out"   in latest
+    assert "status"     in latest
+    assert latest["status"] == "latest"
+
+
+def test_versioned_model_file_exists():
+    """A timestamped versioned model file must exist alongside final_model.joblib."""
+    versioned = list(Path("models").glob("model_2*.joblib"))
+    assert len(versioned) > 0, "No versioned model files found"
+
+
+# ── CLI tests ─────────────────────────────────────────────────────────────────
+
+def test_cli_predict_produces_output(tmp_path):
+    """CLI invocation with --predict must produce a predictions CSV."""
+    import subprocess, sys
+    output_path = tmp_path / "cli_predictions.csv"
+    input_path  = _make_input_csv(tmp_path)
+
+    result = subprocess.run(
+        [sys.executable, "-m", "src.pipeline.pipeline",
+         "--predict",
+         "--input",  str(input_path),
+         "--output", str(output_path)],
+        capture_output=True, text=True
+    )
+    assert result.returncode == 0, f"CLI failed:\n{result.stderr}"
+    assert output_path.exists()
+    df = pd.read_csv(output_path)
+    assert len(df) > 0

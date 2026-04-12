@@ -8,8 +8,8 @@ import logging
 import pandas as pd
 from pathlib import Path
 
-from .io import load_data, validate_schema
-from .evaluate import check_drift
+from .io import load_data, validate_schema, log_validation_report
+from .evaluate import check_output_drift, check_feature_drift, save_drift_report
 from .monitoring import setup_logging, write_metrics
 from .utils import preprocess_inference
 
@@ -31,6 +31,7 @@ def batch_predict(config_path: str, input_path: str, output_path: str) -> None:
         config                = artefacts["config"]
         version               = artefacts.get("version", "unknown")
         training_pct_survived = artefacts.get("training_pct_survived", None)
+        feature_stats         = artefacts.get("feature_stats", {})
         logger.info(f"  Model version: {version}")
 
         logger.info(f"Loading input data from {input_path}...")
@@ -38,12 +39,12 @@ def batch_predict(config_path: str, input_path: str, output_path: str) -> None:
         logger.info(f"  Rows: {len(df)}")
 
         # ── Schema validation ─────────────────────────────────────────────────
-        missing_cols = validate_schema(df)
-        if missing_cols:
-            logger.error(f"Schema validation failed — missing columns: {missing_cols}")
-            write_metrics(0, 0, 0.0, 0)
+        errors, warnings = validate_schema(df)
+        log_validation_report(errors, warnings)
+        if errors:
+            logger.error("Schema validation failed — halting pipeline.")
+            write_metrics(0, 0, 0.0, 0, version, drift_flag=0)
             sys.exit(1)
-        logger.info("Schema validation passed.")
 
         # ── Per-row prediction with fault tolerance ───────────────────────────
         results     = []
@@ -72,7 +73,7 @@ def batch_predict(config_path: str, input_path: str, output_path: str) -> None:
 
         if not results:
             logger.error("All rows failed — no predictions to save.")
-            write_metrics(0, len(failed_rows), 0.0, 0)
+            write_metrics(0, len(failed_rows), 0.0, 0, version, drift_flag=0)
             sys.exit(1)
 
         output = pd.DataFrame(results)
@@ -96,15 +97,26 @@ def batch_predict(config_path: str, input_path: str, output_path: str) -> None:
         logger.info(f"  Not Survived:  {(y_pred == 0).sum()} ({(1 - pct_survived):.2%})")
         logger.info(f"  Avg prob:      {output['probability'].mean():.4f}")
 
-        # ── Drift check ───────────────────────────────────────────────────────
-        if training_pct_survived is not None:
-            check_drift(pct_survived, training_pct_survived)
+        # ── Drift detection ───────────────────────────────────────────────────
+        output_drift   = False
+        feature_drift  = {}
+        output_dir     = str(Path(output_path).parent)
 
-        write_metrics(len(results), len(failed_rows), pct_survived, 1)
+        if training_pct_survived is not None:
+            output_drift = check_output_drift(pct_survived, training_pct_survived)
+
+        if feature_stats:
+            feature_drift = check_feature_drift(df, feature_stats)
+
+        drift_flag = int(output_drift or any(v.get("drifted") for v in feature_drift.values()))
+        save_drift_report(output_drift, feature_drift, pct_survived,
+                          training_pct_survived or 0.0, version, output_dir)
+
+        write_metrics(len(results), len(failed_rows), pct_survived, 1, version, drift_flag)
         logger.info("Metrics written → models/metrics.prom")
         logger.info("=== Batch prediction completed successfully ===")
 
     except Exception as e:
         logger.error(f"Batch prediction failed: {e}", exc_info=True)
-        write_metrics(0, 0, 0.0, 0)
+        write_metrics(0, 0, 0.0, 0, "unknown", drift_flag=0)
         sys.exit(1)
