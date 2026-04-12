@@ -23,5 +23,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Train model (generates artefacts required by integration tests)
+        run: python -m src.pipeline.pipeline --config config/config.yaml --data data/raw/train.csv
+
       - name: Run tests with coverage
         run: pytest tests/ -v --cov=src --cov-report=term-missing
