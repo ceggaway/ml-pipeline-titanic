@@ -221,21 +221,6 @@ Tested in exp_006. CatBoost's Brier score improved by only 0.0008 with calibrati
 | Per-row prediction loop | Fault tolerance | Slower than batch matrix prediction |
 | No real-time API | Simpler deployment | Can't serve individual requests instantly |
 
----
-
-## What I Would Improve in Production
-
-| Area | Current state | Production improvement |
-|---|---|---|
-| Model versioning | Timestamped `.joblib` + `model_registry.json` with git hash and metrics | MLflow or a model registry with promotion gates and lineage UI |
-| Data versioning | Raw CSVs in git | DVC or S3 with data versioning and lineage tracking |
-| Schema validation | Full contract: dtypes, ranges, null rates, allowed categories (errors + warnings) | Pandera or Great Expectations for declarative schema definitions |
-| Drift detection | Output drift (survival rate) + feature-level KS test on 5 features | PSI on all features, prediction distribution monitoring, alerting |
-| Retraining trigger | Manual | Automated trigger when drift exceeds threshold, with validation gate before promotion |
-| Rollback | Load a previous `.joblib` file | Model registry with one-click rollback to last known good version |
-| Secrets management | None needed here | Vault or GitHub Secrets for API keys, DB credentials |
-| Containerisation | Runs locally / GitHub Actions | Docker image for reproducible environment across machines |
-| Observability | File-based metrics | Structured logging (JSON), centralised log aggregation |
 
 ---
 
