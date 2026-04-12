@@ -23,11 +23,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run tests with coverage
-        run: pytest tests/ -v --cov=src --cov-report=term-missing
-
       - name: Train model end-to-end
         run: python -m src.pipeline.pipeline --config config/config.yaml --data data/raw/train.csv
+
+      - name: Run tests with coverage
+        run: pytest tests/ -v --cov=src --cov-report=term-missing
 
       - name: Verify model artefact exists
         run: test -f models/final_model.joblib
