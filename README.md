@@ -13,6 +13,12 @@ Most ML learning stops at model training. This project covers the full lifecycle
 
 ---
 
+## Architecture
+
+![ML Pipeline Architecture](docs/ml_pipeline_diagrams.png)
+
+---
+
 ## Project Structure
 
 ```
