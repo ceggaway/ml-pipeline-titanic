@@ -74,6 +74,7 @@ training:
   cv_folds: 5
   scoring: roc_auc
   target: Survived
+  min_cv_auc: 0.85        # Promotion gate — model must exceed this to become final_model.joblib
 
 evaluation:
   metrics:

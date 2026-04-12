@@ -273,6 +273,78 @@ def test_versioned_model_file_exists():
     assert len(versioned) > 0, "No versioned model files found"
 
 
+# ── Promotion gate + rollback tests ──────────────────────────────────────────
+
+def test_promotion_gate_blocks_weak_model(tmp_path, monkeypatch):
+    """A model with cv_auc below min_cv_auc must not overwrite final_model.joblib."""
+    import shutil, yaml
+    project_root = Path(__file__).parents[1]
+
+    (tmp_path / "models").mkdir()
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "data" / "raw").mkdir(parents=True)
+    shutil.copy(project_root / "data" / "raw" / "train.csv", tmp_path / "data" / "raw" / "train.csv")
+    shutil.copy(project_root / "models" / "final_model.joblib", tmp_path / "models" / "final_model.joblib")
+    original_mtime = (tmp_path / "models" / "final_model.joblib").stat().st_mtime
+
+    # Write a config with an impossibly high promotion gate
+    config_src = project_root / "config" / "config.yaml"
+    with open(config_src) as f:
+        cfg = yaml.safe_load(f)
+    cfg["training"]["min_cv_auc"] = 0.9999   # impossible to reach
+    high_gate_config = tmp_path / "config.yaml"
+    with open(high_gate_config, "w") as f:
+        yaml.dump(cfg, f)
+
+    monkeypatch.chdir(tmp_path)
+    from src.pipeline.train import train
+    train(str(high_gate_config), str(tmp_path / "data" / "raw" / "train.csv"))
+
+    new_mtime = (tmp_path / "models" / "final_model.joblib").stat().st_mtime
+    assert new_mtime == original_mtime, "final_model.joblib was overwritten despite failing promotion gate"
+
+    import json
+    with open(tmp_path / "models" / "model_registry.json") as f:
+        registry = json.load(f)
+    assert registry[-1]["status"] == "rejected"
+
+
+def test_rollback_restores_model(tmp_path, monkeypatch):
+    """--rollback must restore the specified versioned model to final_model.joblib."""
+    import shutil, joblib
+    project_root = Path(__file__).parents[1]
+
+    (tmp_path / "models").mkdir()
+    (tmp_path / "logs").mkdir()
+
+    # Copy existing versioned models (if any) or create a fake one
+    versioned = list((project_root / "models").glob("model_2*.joblib"))
+    if not versioned:
+        pytest.skip("No versioned model files available for rollback test")
+
+    src_versioned = versioned[0]
+    version = src_versioned.stem.replace("model_", "")
+    shutil.copy(src_versioned, tmp_path / "models" / src_versioned.name)
+    shutil.copy(project_root / "models" / "final_model.joblib", tmp_path / "models" / "final_model.joblib")
+
+    # Seed registry with one entry
+    registry = [{"version": version, "status": "superseded", "cv_auc": 0.89}]
+    with open(tmp_path / "models" / "model_registry.json", "w") as f:
+        import json; json.dump(registry, f)
+
+    monkeypatch.chdir(tmp_path)
+    from src.pipeline.pipeline import rollback
+    rollback(version)
+
+    artefacts = joblib.load(tmp_path / "models" / "final_model.joblib")
+    assert artefacts["version"] == version
+
+    import json
+    with open(tmp_path / "models" / "model_registry.json") as f:
+        reg = json.load(f)
+    assert reg[0]["status"] == "latest"
+
+
 # ── CLI tests ─────────────────────────────────────────────────────────────────
 
 def test_cli_predict_produces_output(tmp_path):

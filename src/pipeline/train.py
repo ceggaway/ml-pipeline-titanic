@@ -114,7 +114,19 @@ def train(config_path: str, data_path: str) -> None:
         versioned_path = model_dir / f"model_{version}.joblib"
         latest_path    = model_dir / "final_model.joblib"
         joblib.dump(artefacts, versioned_path)
-        joblib.dump(artefacts, latest_path)
+
+        # Promotion gate — only overwrite final_model.joblib if cv_auc meets threshold
+        min_cv_auc = config["training"].get("min_cv_auc", 0.0)
+        promoted   = cv_auc >= min_cv_auc
+
+        if promoted:
+            joblib.dump(artefacts, latest_path)
+            logger.info(f"Promotion gate passed (cv_auc={cv_auc:.4f} >= {min_cv_auc}) → promoted to {latest_path}")
+        else:
+            logger.warning(
+                f"Promotion gate FAILED (cv_auc={cv_auc:.4f} < {min_cv_auc}) — "
+                f"final_model.joblib NOT updated. Previous model retained."
+            )
 
         # Update model registry
         registry_path = model_dir / "model_registry.json"
@@ -123,6 +135,7 @@ def train(config_path: str, data_path: str) -> None:
             with open(registry_path) as f:
                 registry = json.load(f)
 
+        new_status = "latest" if promoted else "rejected"
         registry.append({
             "version":       version,
             "git_hash":      git_hash,
@@ -133,17 +146,19 @@ def train(config_path: str, data_path: str) -> None:
             "cv_auc":        cv_auc,
             "hold_out":      hold_out_metrics,
             "artefact_path": str(versioned_path),
-            "status":        "latest",
+            "status":        new_status,
         })
-        # Mark previous entries as superseded
-        for entry in registry[:-1]:
-            entry["status"] = "superseded"
+        # Mark previous "latest" entries as superseded (only if this run promoted)
+        if promoted:
+            for entry in registry[:-1]:
+                if entry["status"] == "latest":
+                    entry["status"] = "superseded"
 
         with open(registry_path, "w") as f:
             json.dump(registry, f, indent=2)
 
-        logger.info(f"Model saved → {versioned_path} (and → {latest_path})")
-        logger.info(f"Model registry updated → {registry_path}")
+        logger.info(f"Model saved → {versioned_path}")
+        logger.info(f"Model registry updated → {registry_path} (status={new_status})")
         logger.info(f"Version: {version} | Git: {git_hash}")
         logger.info("=== Training completed successfully ===")
 
