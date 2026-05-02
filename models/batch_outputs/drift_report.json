@@ -1,7 +1,7 @@
 {
   "model_version": "20260411_153240",
   "output_drift": true,
-  "batch_pct_survived": 0.8182,
+  "batch_pct_survived": 0.88,
   "training_baseline": 0.3834,
   "feature_drift": {}
 }
