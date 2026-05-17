@@ -1,2 +1,2 @@
 original_index,error,PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
-52,0,9052,2,"Wilson, Ms. Robert",female,18.1,0,0,SYN83493,17.42,G43,
+51,0,9051,2,"Taylor, Mrs. Alice",female,21.5,0,0,SYN62877,20.02,,
