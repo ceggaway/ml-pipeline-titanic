@@ -1,2 +1,2 @@
 original_index,error,PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
-60,0,9060,1,"Wilson, Mr. Robert",male,22.0,0,0,SYN81784,57.52,,
+34,0,9034,2,"Jones, Mr. Mary",male,59.7,0,0,SYN72404,14.2,,
