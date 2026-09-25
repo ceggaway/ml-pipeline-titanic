@@ -1,3 +1,2 @@
 original_index,error,PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
-52,0,9052,1,"Wilson, Miss. Robert",female,22.0,0,1,SYN24092,45.38,,
-81,0,9081,1,"Brown, Mr. John",male,47.7,0,0,SYN37612,74.1,,
+7,0,9007,3,"Hall, Mrs. Thomas",female,55.8,0,0,SYN76566,12.89,E57,
