@@ -1,0 +1,100 @@
+PassengerId,prediction,probability,survived_label
+9000,1,0.6969,Survived
+9001,1,0.7365,Survived
+9002,1,0.8512,Survived
+9003,1,0.956,Survived
+9004,1,0.8059,Survived
+9005,1,0.5411,Survived
+9006,1,0.7762,Survived
+9007,1,0.9566,Survived
+9008,0,0.4279,Not Survived
+9009,1,0.7773,Survived
+9010,1,0.6484,Survived
+9011,1,0.6727,Survived
+9012,1,0.7834,Survived
+9014,0,0.3612,Not Survived
+9015,1,0.8548,Survived
+9016,1,0.8534,Survived
+9017,1,0.9927,Survived
+9018,1,0.9825,Survived
+9019,1,0.9398,Survived
+9020,1,0.8397,Survived
+9021,1,0.7183,Survived
+9022,1,0.6997,Survived
+9023,0,0.4039,Not Survived
+9024,1,0.9807,Survived
+9025,1,0.7358,Survived
+9026,1,0.9414,Survived
+9027,1,0.9916,Survived
+9028,1,0.8918,Survived
+9029,1,0.9933,Survived
+9030,1,0.6852,Survived
+9031,1,0.9931,Survived
+9032,1,0.9888,Survived
+9033,0,0.3084,Not Survived
+9034,1,0.9499,Survived
+9035,1,0.7911,Survived
+9036,1,0.8053,Survived
+9037,1,0.5852,Survived
+9038,1,0.9514,Survived
+9039,1,0.9333,Survived
+9040,1,0.71,Survived
+9041,1,0.8682,Survived
+9042,1,0.8126,Survived
+9043,0,0.4426,Not Survived
+9044,1,0.9919,Survived
+9045,1,0.4912,Survived
+9046,1,0.931,Survived
+9047,1,0.7958,Survived
+9048,1,0.5846,Survived
+9049,1,0.983,Survived
+9050,1,0.9203,Survived
+9051,0,0.3393,Not Survived
+9052,1,0.9919,Survived
+9053,1,0.7023,Survived
+9054,1,0.8798,Survived
+9055,0,0.3414,Not Survived
+9056,1,0.5399,Survived
+9057,1,0.9409,Survived
+9058,1,0.697,Survived
+9059,1,0.7544,Survived
+9060,1,0.5456,Survived
+9061,1,0.6983,Survived
+9062,0,0.4575,Not Survived
+9063,1,0.6313,Survived
+9064,1,0.9021,Survived
+9065,0,0.349,Not Survived
+9066,1,0.5542,Survived
+9067,1,0.9916,Survived
+9068,1,0.933,Survived
+9069,1,0.6627,Survived
+9070,1,0.6959,Survived
+9071,1,0.7214,Survived
+9072,1,0.9351,Survived
+9073,1,0.7523,Survived
+9074,1,0.7272,Survived
+9075,1,0.9879,Survived
+9076,1,0.736,Survived
+9077,0,0.2611,Not Survived
+9078,1,0.8417,Survived
+9079,1,0.7858,Survived
+9080,1,0.932,Survived
+9081,1,0.9793,Survived
+9082,1,0.8228,Survived
+9083,1,0.9613,Survived
+9084,1,0.7628,Survived
+9085,0,0.2884,Not Survived
+9086,1,0.7636,Survived
+9087,0,0.2927,Not Survived
+9088,0,0.3275,Not Survived
+9089,1,0.9913,Survived
+9090,1,0.6876,Survived
+9091,1,0.9412,Survived
+9092,0,0.2094,Not Survived
+9093,1,0.8408,Survived
+9094,1,0.7766,Survived
+9095,1,0.7864,Survived
+9096,1,0.8992,Survived
+9097,1,0.7856,Survived
+9098,1,0.7918,Survived
+9099,1,0.9936,Survived
